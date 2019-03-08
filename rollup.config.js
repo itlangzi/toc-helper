@@ -1,7 +1,7 @@
 const babel = require('rollup-plugin-babel');
-const resolve =require( 'rollup-plugin-node-resolve')
-const commonjs =require( 'rollup-plugin-commonjs')
-const uglify = require( 'rollup-plugin-uglify')
+const resolve = require('rollup-plugin-node-resolve')
+const commonjs = require('rollup-plugin-commonjs')
+const terser = require('rollup-plugin-terser')
 const pkg = require('./package.json')
 
 module.exports = {
@@ -21,14 +21,19 @@ module.exports = {
             main: true,
             browser: true
         }),
-        
         babel({
             babelrc: true,
             externalHelpers: false,
             runtimeHelpers: false,
             exclude: 'node_modules/**'
         }),
-        uglify.uglify({
+        terser.terser({
+            mangle:{
+                properties:{
+                    // 混淆所有的方法名
+                    regex:/(winEvents|setNavbarScroll|resetNavbarScroll|tocScrollSync|offsetBodyScrollEvent|addOffsetBodyScrollEvent|removeOffsetBodyScrollEvent|offsetBodyScrollDebounce|scrollTop|GID|debounce|empty|clear|scollToc|getOffsetY|loadHeadings|setHash|setActive|setHightlight|__enter|__leave|__click|tocEvent|shadow|fixed)/
+                }
+            },
             output: {
                 comments: /^!/
             }

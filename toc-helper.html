@@ -422,14 +422,16 @@ import TocHelper from 'toc-helper'</code></pre>
 
                     <h4><code class="code"><strong> offsetBody </strong></code></h4>
                     <small>内容父级定位元素，该元素必须存在<code class="code">position</code>属性，切<code
-                            class="code">position</code>的值不等于<code class="code">static</code>, 否则此值等于<code class="code">body</code></small>
+                            class="code">position</code>的值不等于<code class="code">static</code>, 否则此值等于<code
+                            class="code">body</code></small>
                     <p>类型：<code class="code">string | HTMLElement</code></p>
                     <p>默认值：<code class="code">document.body</code></p>
                     <small>为<code class="code">string</code>类型时，必须是选择器；无论是<code class="code">string</code>类型，还是<code
                             class="code">HTMLElement</code>类型，都必须有<code class="position">position</code>属性，切<code
-                            class="position">position</code>的值不等于<code class="code">static</code>, 否则此值等于<code class="code">body</code></small>
+                            class="position">position</code>的值不等于<code class="code">static</code>, 否则此值等于<code
+                            class="code">body</code></small>
 
-                    <h4><code class="code"><strong> topFixed </strong></code></h4>
+                    <h4><code class="code"><strong> tocFixed </strong></code></h4>
                     <small>不使用或设置目录<code class="code">fixed</code>定位</small>
                     <p>类型：<code class="code"> false | Object </code></p>
                     <p>默认值：<code class="code">如下</code></p>
@@ -452,19 +454,24 @@ import TocHelper from 'toc-helper'</code></pre>
                     <p>默认值：<code class="code">6</code></p>
                     <small>层级最大为<code class="code">6</code> ，最小为<code class="code">1</code>，其他值无效</small>
 
+                    <h4><code class="code"><strong> autoScroll </strong></code></h4>
+                    <small>自动添加滚动条; 若<code class="code">autoScroll=true</code>需满足以下条件：<br/>1、目录高度要大于可视高度 <br/>2、<code class="code">tocFixed</code>不等于<code class="code">false</code></small>
+                    <p>类型：<code class="code"> Boolean </code></p>
+                    <p>默认值：<code class="code">true</code></p>
+
                     <h2>五、示例<code class="code">options</code>全部配置信息</h2>
 
                     <pre class="language-javascript line-numbers"><code>
 {
     dom: '*[data-toc]', // 文章内容元素 选择器 或 HTMLElement
     classNames: {       // class选择器
-        toc: '.toc',
-        fxied: `toc-fixed`,
-        brand: `toc-brand`,
-        navbar: `toc-navbar`,
-        hightlight: `toc-hightlight`,
-        nav: `toc-nav`,
-        link: `toc-link`,
+        toc: 'toc',
+        fxied: 'toc-fixed',
+        brand: 'toc-brand',
+        navbar: 'toc-navbar',
+        hightlight: 'toc-hightlight',
+        nav: 'toc-nav',
+        link: 'toc-link',
         active: 'active',
         marginLeft1: 'ml-1',
         marginLeft2: 'ml-2',
@@ -478,11 +485,12 @@ import TocHelper from 'toc-helper'</code></pre>
     shadow: 'shadow',
     idPrefix: 'toc-heading-',
     offsetBody: document.body,
-    topFixed: {
+    tocFixed: {
         top: 24,
         left: 0
     },
-    maxDepth: 6
+    maxDepth: 6,
+    autoScroll: true
 }
                     </code></pre>
                     <h1>注意：</h1>
@@ -503,8 +511,8 @@ import TocHelper from 'toc-helper'</code></pre>
 }</code></pre>
                     <h1>即将支持的功能</h1>
                     <ol style="padding:20px;">
-                        <li>目录自动添加滚动条</li>
-                        <li>实现双向滚动</li>
+                        <li><del>目录自动添加滚动条 已实现</del></li>
+                        <li><del>实现内容->目录联动滚动 已实现</del></li>
                         <li>自动折叠/展开</li>
                         <li>支持横向目录</li>
                         <li>同步高亮文章中的标题</li>
@@ -556,7 +564,7 @@ import TocHelper from 'toc-helper'</code></pre>
         const tocHelper = new TocHelper({
             dom: 'div[data-toc]',
             offsetBody: document.querySelector('#scroll'),
-            topFixed: {
+            tocFixed: {
                 top: 83
             }
         })

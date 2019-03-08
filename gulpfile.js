@@ -9,18 +9,18 @@ const rename = require('gulp-rename')
 
 const rollupConfig = require('./rollup.config.js')
 
-const clean = function(){
-    return del(['./js/toc-helper.min.js','./css/toc-helper.min.css'])
+const clean = function () {
+    return del(['./js/toc-helper.min.js', './css/toc-helper.min.css'])
 }
-const buildjs = async  function(){
-    const bundle = await  rollup.rollup({
+const buildjs = async function () {
+    const bundle = await rollup.rollup({
         input: rollupConfig.input,
         plugins: rollupConfig.plugins
     })
     await bundle.write(rollupConfig.output)
 }
 
-const buildcss = function(){
+const buildcss = function () {
     return gulp.src('./css/toc-helper.css')
         .pipe(postcss([
             autoprefixer(['last 5 version']),
@@ -34,7 +34,12 @@ const buildcss = function(){
         }))
         .pipe(gulp.dest('./css'))
 }
-
-gulp.task('default', gulp.series(clean, gulp.parallel(buildjs, buildcss)), function(){
+const watch = function (done) { 
+    gulp.watch('./css/toc-helper.css', gulp.series(buildcss))
+    gulp.watch('./js/toc-helper.js', gulp.series(buildjs))
+    done()
+}
+gulp.task('dev', gulp.series(clean, gulp.parallel(buildjs, buildcss, watch)))
+gulp.task('default', gulp.series(clean, gulp.parallel(buildjs, buildcss)), function () {
     console.log('build completed!!!')
 })

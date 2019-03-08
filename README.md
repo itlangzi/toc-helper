@@ -223,7 +223,7 @@ new TocHelper().reload()
 类型： `Number`  
 默认值：`24`  
 
-#### 8.1 `top`  
+#### 8.2 `left`  
 > 目录距离文档左侧的偏移量  
 
 类型： `Number`  
@@ -236,18 +236,27 @@ new TocHelper().reload()
 默认值：`6`  
 > 层级最大为`6` ，最小为`1`，其他值无效
 
+### 10 `autoScroll`  
+> 自动添加滚动条  
+
+类型： `Boolean`  
+默认值：`true`  
+>若 `autoScroll=true` 需满足以下条件：
+>- 目录高度要大于可视高度 
+>- `tocFixed` 不等于 `false`
+
  ## 五、示例`options`全部配置信息  
  ```javascript
  {
     dom: '*[data-toc]', // 文章内容元素 选择器 或 HTMLElement
     classNames: {       // class选择器
-        toc: '.toc',
-        fxied: `toc-fixed`,
-        brand: `toc-brand`,
-        navbar: `toc-navbar`,
-        hightlight: `toc-hightlight`,
-        nav: `toc-nav`,
-        link: `toc-link`,
+        toc: 'toc',
+        fxied: 'toc-fixed',
+        brand: 'toc-brand',
+        navbar: 'toc-navbar',
+        hightlight: 'toc-hightlight',
+        nav: 'toc-nav',
+        link: 'toc-link',
         active: 'active',
         marginLeft1: 'ml-1',
         marginLeft2: 'ml-2',
@@ -261,11 +270,12 @@ new TocHelper().reload()
     shadow: 'shadow',
     idPrefix: 'toc-heading-',
     offsetBody: document.body,
-    topFixed: {
+    tocFixed: {
         top: 24,
         left: 0
     },
-    maxDepth: 6
+    maxDepth: 6,
+    autoScroll: true
 }
  ```  
 
@@ -285,8 +295,8 @@ new TocHelper().reload()
 }
 ```  
 # 即将支持的功能  
-- 目录自动添加滚动条
-- 实现双向滚动
+- ~~目录自动添加滚动条 已实现~~
+- ~~实现内容->目录联动滚动 已实现~~
 - 自动折叠/展开
 - 支持横向目录
 - 同步高亮文章中的标题

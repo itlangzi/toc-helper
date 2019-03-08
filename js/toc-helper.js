@@ -1,4 +1,4 @@
- 
+
 'use strict';
 
 
@@ -7,11 +7,18 @@ const doc = document,
     body = doc.body,
     $ = doc.querySelector.bind(doc),
     $$ = doc.querySelectorAll.bind(doc),
+    animate = win.requestAnimationFrame,
     isMobile = (/Mobile|Android|iOS|iPhone|iPad|iPod|Windows Phone|KFAPWI/i.test(navigator.userAgent)),
     enterEvent = isMobile ? 'touchstart' : 'mouseenter',
     leaveEvent = isMobile ? 'touchend' : 'mouseleave',
     clickEvent = isMobile ? 'touchend' : 'click',
+    resize = isMobile ? 'orientationchange' : 'resize',
     scrollEvent = 'scroll',
+
+    scrollDir = {
+        V: 'vertical',   //竖
+        H: 'horizontal'  // 水平
+    },
     isHTMLElement = function (el) {
         return el instanceof HTMLElement
     },
@@ -33,7 +40,17 @@ const doc = document,
             return win.getComputedStyle(el).getPropertyValue(key)
         }
         el.style[key] = value
+    },
+    isPosition = function (el) {
+        const position = css(el, 'position')
+        return position && position !== 'static'
+    },
+    hasScrollbar = function (el, dir = scrollDir.V) { //horizontal 水平
+        return dir === scrollDir.V ? el.scrollHeight > el.clientHeight : (dir === scrollDir.H ? el.scrollWidth > el.clientWidth : false)
     }
+
+// 窗口可视高度
+let viewHeight = doc.documentElement.clientHeight
 
 
 const CLASS_NAMES = {
@@ -65,11 +82,12 @@ const defaultOptions = {
     shadow: 'shadow',
     idPrefix: 'toc-heading-',
     offsetBody: body,
-    topFixed: {
+    tocFixed: {
         top: 24,
         left: 0
     },
-    maxDepth: 6
+    maxDepth: 6,
+    autoScroll: true    //自动添加滚动条
 }
 
 const TocHelper = function (selector, options = defaultOptions) {
@@ -82,6 +100,8 @@ const TocHelper = function (selector, options = defaultOptions) {
     this.options = Object.assign({}, defaultOptions, options)
 
     this.megre()
+
+    this.winEvents()
 
     return this
 
@@ -106,15 +126,13 @@ TocHelper.prototype = {
         if (!offsetBody || offsetBody === body) {
             this.options.offsetBody = body
         } else if (isHTMLElement(offsetBody)) {
-            const position = css(offsetBody, 'position')
-            this.options.offsetBody = position && position !== 'static' ? offsetBody : body
+            this.options.offsetBody = isPosition(offsetBody) ? offsetBody : body
         } else if (isString(offsetBody)) {
             const _offsetBody = getDom(offsetBody)
             if (!_offsetBody || _offsetBody === body) {
                 this.options.offsetBody = body
             } else {
-                const position = css(_offsetBody, 'position')
-                this.options.offsetBody = position && position !== 'static' ? _offsetBody : body
+                this.options.offsetBody = isPosition(offsetBody) ? _offsetBody : body
             }
         } else {
             this.options.offsetBody = body
@@ -130,6 +148,8 @@ TocHelper.prototype = {
 
         this.hightlight = this.options.hightlight === true ? $(`.${this.options.classNames.hightlight}`) : null
 
+        this.navbar = this.navbar || $(`.${this.options.classNames.navbar}`)
+
         this.tocEvent()
 
         this.fixed()
@@ -138,13 +158,53 @@ TocHelper.prototype = {
 
         !this.elements && (this.elements = this.loadHeadings());
         this.events = [this.offsetBodyScrollEvent.bind(this)]
-        
+
         this.offsetBodyScrollDebounce()
         // 默认读取hash
         this.setActive($(`.${this.options.classNames.toc} a[href="${location.hash}"]`))
+        // 滚动条位置
+        this.tocScrollSync()
+
+        // 自动生成滚动条
+        this.setNavbarScroll()
     },
-    offsetBodyScrollEvent: function(){
-        this.scollToc.call(this)
+    winEvents: function () {
+        const _this = this
+        win.addEventListener(resize, function () {
+            // 设备大小变化后重新设置高度
+            viewHeight = doc.documentElement.clientHeight
+            _this.debounce(_this.setNavbarScroll, 200).call(_this)
+        })
+    },
+    // 设置navbar的滚动条样式
+    setNavbarScroll: function () {
+        this.resetNavbarScroll()
+        const tocFixed = this.options.tocFixed,
+            navbar = this.navbar
+        if (this.options.autoScroll && tocFixed && this.toc.offsetHeight + (tocFixed.top || 0) > viewHeight) {
+            const maxHeight = (viewHeight - this.getOffsetY(this.navbar) - (tocFixed.top || 0))
+            navbar.style.maxHeight = maxHeight + 'px'
+            navbar.style.overflowY = 'auto'
+        }
+    },
+    // 重置样式
+    resetNavbarScroll: function () {
+        this.navbar.style.maxHeight = 'inherit'
+        this.navbar.style.overflowY = 'inherit'
+    },
+    // 若有滚动条计算滚动条的位置
+    tocScrollSync: function () {
+        const navbar = this.navbar, active = this.active
+        if (!active || !hasScrollbar(navbar)) return
+        const activeTop = active.offsetTop
+        navbar.scrollTo(0, activeTop)
+    },
+    // 内容/文章的滚动事件处理
+    offsetBodyScrollEvent: function () {
+        // 目录高亮显示
+        this.scollToc()
+        // 目录滚动条同步
+        this.tocScrollSync()
     },
     addOffsetBodyScrollEvent: function () {
         const el = this.options.offsetBody === body ? win : this.options.offsetBody
@@ -181,6 +241,8 @@ TocHelper.prototype = {
         navbar.classList.add(this.options.classNames.navbar)
         frag.appendChild(navbar)
 
+        this.navbar = navbar
+
         // 创建hightlight
         if (this.options.hightlight === true) {
             const hightlight = doc.createElement('div')
@@ -193,7 +255,7 @@ TocHelper.prototype = {
         let lastNavNode = null, lastLevel = 1;
         levels.forEach((level, index, thisArray) => {
             const target = targets[index]
-            if(!target) return 
+            if (!target) return
 
             if (index === 0 || thisArray[index - 1] !== level) {
                 // 创建nav
@@ -230,16 +292,11 @@ TocHelper.prototype = {
         return offsetBody === win ? offsetBody.pageYOffset : offsetBody === body ? doc.documentElement.scrollTop || body.scrollTop : offsetBody.scrollTop
     },
     // __GID().next().value
-    GID: function() {
-        let current_id = 0,
-            idPrefix = this.options.idPrefix
-        /* while (true) {
-            current_id++
-            yield `${idPrefix}${current_id}`
-        } */
+    GID: function () {
+        let current_id = 0, idPrefix = this.options.idPrefix
         return {
-            next: function(){
-                current_id ++ ;
+            next: function () {
+                current_id++;
                 const value = `${idPrefix}${current_id}`
                 return {
                     value: value
@@ -247,30 +304,10 @@ TocHelper.prototype = {
             }
         }
     },
-    /* throttle: function (fn, delay) {
-        const _this = this
-        return function () {
-            const now = +new Date(), self = this, args = arguments
-            if (_this.lastTime && _this.lastTime < now + delay) {
-                !_this.timer && (_this.timer = setTimeout(() => {
-                    clearTimeout(_this.timer)
-                    _this.lastTime = now
-                    _this.timer = null
-                    fn.apply(self, args)
-                }, delay))
-            } else {
-                clearTimeout(_this.timer)
-                _this.lastTime = now
-                _this.timer = null
-                fn.apply(self, args)
-            }
-        }
-    }, */
     debounce: function (fn, delay) {
         return function () {
             var _this = this, args = arguments
             fn.timer && clearTimeout(fn.timer)
-
             fn.timer = setTimeout(() => {
                 fn.apply(_this, args)
             }, delay)
@@ -311,6 +348,13 @@ TocHelper.prototype = {
         }
         tocLink && (this.setActive(tocLink))
     },
+    getOffsetY: function (el, stopParent = body) {
+        let y = el.offsetTop
+        if (el.offsetParent && el.offsetParent !== stopParent) {
+            y += this.getOffsetY(el.offsetParent)
+        }
+        return y
+    },
     /**
      * 获取heading对应的信息
      * @returns levels 所有元素的层级
@@ -349,7 +393,7 @@ TocHelper.prototype = {
                 const preLevel = _headings[i][1]
                 // 上一个heading
                 const preHeading = _headings[i][3]
-                
+
                 // 上一个heading的元素原始层级
                 const preOriginaLevel = +preHeading.nodeName[1]
 
@@ -386,20 +430,20 @@ TocHelper.prototype = {
          * 获取当前heading元素到offsetBody元素的距离
          * @param {*} heading  heading元素
          */
-        const getOffsetY = function (heading) {
+        /* const getOffsetY = function (heading) {
             let y = heading.offsetTop
             if (heading.offsetParent && heading.offsetParent !== _this.options.offsetBody) {
                 y += getOffsetY(heading.offsetParent)
             }
             return y
-        }
+        } */
         /**
          * 获取toclink
          * @param {*} heading 
          * @param {*} level 
          */
         const loadTocLink = function (heading, level) {
-            if(!heading.textContent.replace(/\s/g,'')) return false
+            if (!heading.textContent.replace(/\s/g, '')) return false
             let tocLink = _this.toc.querySelector(`a[href="#${heading.id}"]`)
             if (!tocLink) {
                 // 不存在就创建一个
@@ -418,7 +462,7 @@ TocHelper.prototype = {
             // 获取层级
             const level = backLevel(thisArray, i, +heading.nodeName[1]),
                 // 获取当前heading元素距离父级的距离
-                y = getOffsetY(heading)
+                y = _this.getOffsetY(heading, _this.options.offsetBody)
             // 设置ID
             setId(heading)
             // 获取toc目录
@@ -526,18 +570,18 @@ TocHelper.prototype = {
     // fixed
     fixed: function () {
         const toc = this.toc
-        let topFixed = this.options.topFixed
+        let tocFixed = this.options.tocFixed
         if (!toc) return
         const tocFixedClassName = this.options.classNames.fxied
         const classList = toc.classList
-        if (topFixed === false) {
+        if (tocFixed === false) {
             toc.style.top = 'inherit'
             toc.style.left = 'inherit'
             classList.contains(tocFixedClassName) && classList.remove(tocFixedClassName)
         } else {
             !classList.contains(tocFixedClassName) && classList.add(tocFixedClassName)
-            topFixed.top && (toc.style.top = topFixed.top + 'px')
-            topFixed.left && (toc.style.left = topFixed.left + 'px')
+            tocFixed.top && (toc.style.top = tocFixed.top + 'px')
+            tocFixed.left && (toc.style.left = tocFixed.left + 'px')
         }
     }
 }

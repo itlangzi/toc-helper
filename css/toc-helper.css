@@ -49,8 +49,9 @@ body{
 .toc-navbar {
     position: relative;
     display: block;
-    max-height: 500px;
-    overflow-y: auto;
+    /* max-height: 500px;
+    overflow-y: auto; */
+    scroll-behavior: smooth;
 }
 /* 滚动条 */
 .toc-navbar::-webkit-scrollbar-thumb:horizontal { /*水平滚动条的样式*/
