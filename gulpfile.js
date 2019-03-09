@@ -6,6 +6,7 @@ const postcss = require('gulp-postcss')
 const cssnano = require('cssnano')
 const cleancss = require('gulp-clean-css');
 const rename = require('gulp-rename')
+const zip = require('gulp-zip')
 
 const rollupConfig = require('./rollup.config.js')
 
@@ -39,7 +40,12 @@ const watch = function (done) {
     gulp.watch('./js/toc-helper.js', gulp.series(buildjs))
     done()
 }
+const buildZip = function(){
+    return gulp.src(['./css/*.css','./js/*.js'])
+        .pipe(zip('toc-helper.zip', {compress: true}))
+        .pipe(gulp.dest('./'))
+}
 gulp.task('dev', gulp.series(clean, gulp.parallel(buildjs, buildcss, watch)))
-gulp.task('default', gulp.series(clean, gulp.parallel(buildjs, buildcss)), function () {
+gulp.task('default', gulp.series(clean, gulp.parallel(buildjs, buildcss), buildZip), function () {
     console.log('build completed!!!')
 })
