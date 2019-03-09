@@ -31,7 +31,7 @@ module.exports = {
             mangle:{
                 properties:{
                     // 混淆所有的方法名
-                    regex:/(winEvents|setNavbarScroll|resetNavbarScroll|tocScrollSync|offsetBodyScrollEvent|addOffsetBodyScrollEvent|removeOffsetBodyScrollEvent|offsetBodyScrollDebounce|scrollTop|GID|debounce|empty|clear|scollToc|getOffsetY|loadHeadings|setHash|setActive|setHightlight|__enter|__leave|__click|tocEvent|shadow|fixed)/
+                    regex:/(winEvents|setTocScroll|resetTocScroll|syncTocScroll|offsetBodyScrollEvent|addOffsetBodyScrollEvent|removeOffsetBodyScrollEvent|offsetBodyScrollDebounce|getOffsetBodyScrollTop|GID|debounce|empty|clear|activeToc|getOffsetY|loadHeadings|setHash|setActive|setHightlight|__enter|__leave|__click|tocEvent|shadow|fixed)/
                 }
             },
             output: {

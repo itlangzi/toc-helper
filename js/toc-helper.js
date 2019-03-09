@@ -160,40 +160,40 @@ TocHelper.prototype = {
         this.events = [this.offsetBodyScrollEvent.bind(this)]
 
         this.offsetBodyScrollDebounce()
-        // 默认读取hash
-        this.setActive($(`.${this.options.classNames.toc} a[href="${location.hash}"]`))
-        // 滚动条位置
-        this.tocScrollSync()
+        // 默认激活
+        this.activeToc()
+        // 滚动条位置同步
+        this.syncTocScroll()
 
         // 自动生成滚动条
-        this.setNavbarScroll()
+        this.setTocScroll()
     },
     winEvents: function () {
         const _this = this
         win.addEventListener(resize, function () {
             // 设备大小变化后重新设置高度
             viewHeight = doc.documentElement.clientHeight
-            _this.debounce(_this.setNavbarScroll, 200).call(_this)
+            _this.debounce(_this.setTocScroll, 200).call(_this)
         })
     },
     // 设置navbar的滚动条样式
-    setNavbarScroll: function () {
-        this.resetNavbarScroll()
+    setTocScroll: function () {
+        this.resetTocScroll()
         const tocFixed = this.options.tocFixed,
             navbar = this.navbar
         if (this.options.autoScroll && tocFixed && this.toc.offsetHeight + (tocFixed.top || 0) > viewHeight) {
-            const maxHeight = (viewHeight - this.getOffsetY(this.navbar) - (tocFixed.top || 0))
+            const maxHeight = (viewHeight - this.getOffsetY(navbar) - (tocFixed.top || 0))
             navbar.style.maxHeight = maxHeight + 'px'
             navbar.style.overflowY = 'auto'
         }
     },
     // 重置样式
-    resetNavbarScroll: function () {
+    resetTocScroll: function () {
         this.navbar.style.maxHeight = 'inherit'
         this.navbar.style.overflowY = 'inherit'
     },
     // 若有滚动条计算滚动条的位置
-    tocScrollSync: function () {
+    syncTocScroll: function () {
         const navbar = this.navbar, active = this.active
         if (!active || !hasScrollbar(navbar)) return
         const activeTop = active.offsetTop
@@ -202,9 +202,9 @@ TocHelper.prototype = {
     // 内容/文章的滚动事件处理
     offsetBodyScrollEvent: function () {
         // 目录高亮显示
-        this.scollToc()
+        this.activeToc()
         // 目录滚动条同步
-        this.tocScrollSync()
+        this.syncTocScroll()
     },
     addOffsetBodyScrollEvent: function () {
         const el = this.options.offsetBody === body ? win : this.options.offsetBody
@@ -287,7 +287,7 @@ TocHelper.prototype = {
 
         this.reload()
     },
-    scrollTop: function () {
+    getOffsetBodyScrollTop: function () {
         const offsetBody = this.options.offsetBody
         return offsetBody === win ? offsetBody.pageYOffset : offsetBody === body ? doc.documentElement.scrollTop || body.scrollTop : offsetBody.scrollTop
     },
@@ -298,9 +298,7 @@ TocHelper.prototype = {
             next: function () {
                 current_id++;
                 const value = `${idPrefix}${current_id}`
-                return {
-                    value: value
-                }
+                return { value }
             }
         }
     },
@@ -324,28 +322,17 @@ TocHelper.prototype = {
         this.elements = null
     },
 
-    scollToc: function () {
+    activeToc: function () {
         const _this = this,
-            elements = this.elements,
+            elements = _this.elements,
             offsets = elements.offsets,
             targets = elements.targets,
-            top = _this.scrollTop(),
+            top = _this.getOffsetBodyScrollTop(),
             // 判断当前滚动条在那个区间
             index = offsets.findIndex(el => Number(el) > top)
 
-        let tocLink = null;
-        if (index === 0) {
-            tocLink = targets[index]
-        } else if (index > 0) {
-            const preOffsetTop = offsets[index - 1]
-            const curOffsetTop = offsets[index]
-            const offset = Math.abs((curOffsetTop - preOffsetTop) / 4)
-            if (top < offset + preOffsetTop && top >= preOffsetTop) {
-                tocLink = targets[index - 1]
-            } else if (top <= curOffsetTop && top > curOffsetTop - offset) {
-                tocLink = targets[index]
-            }
-        }
+        let tocLink = targets[index];
+
         tocLink && (this.setActive(tocLink))
     },
     getOffsetY: function (el, stopParent = body) {
@@ -482,24 +469,14 @@ TocHelper.prototype = {
 
         })
 
-        const levels = [], offsets = [], sources = [], targets = []
+        const elements = { levels: [], offsets: [], sources: [], targets: [] }
         headings.forEach((headingItem, i) => {
-            levels[i] = headingItem[1]
-            offsets[i] = headingItem[2]
-            sources[i] = headingItem[3]
-            targets[i] = headingItem[4]
+            elements.levels[i] = headingItem[1]
+            elements.offsets[i] = headingItem[2]
+            elements.sources[i] = headingItem[3]
+            elements.targets[i] = headingItem[4]
         })
-        const elements = {
-            levels: levels,
-            offsets: offsets,
-            sources: sources,
-            targets: targets
-        }
         return elements
-    },
-    setHash: function () {
-        const hash = this.active ? this.active.getAttribute('href') : null
-        hash && (location.hash = hash)
     },
     setActive: function (el) {
 
@@ -521,22 +498,15 @@ TocHelper.prototype = {
         // 设置高亮
         this.setHightlight(active)
 
-        // this.setHash()
     },
     setHightlight: function (active) {
         if (!this.hightlight) return
-
         if (!active) {
             this.hightlight.style.top = 0
             this.hightlight.style.height = 0
         } else {
-
-            const activeOffset = {
-                y: active.offsetTop,
-                height: active.offsetHeight
-            }
-            this.hightlight.style.top = activeOffset.y + 'px'
-            this.hightlight.style.height = activeOffset.height + 'px'
+            this.hightlight.style.top = active.offsetTop + 'px'
+            this.hightlight.style.height = active.offsetHeight + 'px'
         }
     },
     __enter: function (e) {
@@ -556,8 +526,11 @@ TocHelper.prototype = {
 
         const _this = this
         Array.from($$(`.${this.options.classNames.toc} .${this.options.classNames.link}`) || []).forEach(a => {
+            // 悬停事件
             a.addEventListener(enterEvent, _this.__enter.bind(_this))
+            // 离开事件
             a.addEventListener(leaveEvent, _this.__leave.bind(_this))
+            // 点击事件
             a.addEventListener(clickEvent, _this.__click.bind(_this))
         })
 
@@ -565,7 +538,8 @@ TocHelper.prototype = {
     // 阴影
     shadow: function () {
         if (this.options.shadow === false) return
-        this.toc && !this.toc.classList.contains(this.options.shadow) && this.toc.classList.add(this.options.shadow)
+        const toc = this.toc, classList = toc && (toc.classList || []), shadow = this.options.shadow
+        !classList.contains(shadow) && classList.add(shadow)
     },
     // fixed
     fixed: function () {
