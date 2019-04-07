@@ -3,6 +3,7 @@
     <img src="./images/toc.png" title="toc-helper" alt="toc-helper">
 </center>  
 
+演示站点:  <a href="http://www.itlangzi.com/toc-helper" title="TocHelper演示站点" target="_blank">http://www.itlangzi.com/toc-helper</a>   
 ## 一、 简介
 `TocHelper` 是一款给文章自动生成目录及侧边栏目录滚动特效的插件  
 **特点**  
