@@ -12,6 +12,7 @@
 - 自动退级  
 - `Hash` 定位  
 - 目录跟随 `Body / div` 滚动  
+- 可根据需要显示/隐藏  
 
 ## 二、 使用  
 ### 2.1  浏览器  
@@ -79,6 +80,12 @@ new TocHelper().reload()
 > 无参  
 
 目录不存在或需要重新生成目录使用该方法  
+
+
+### togger()  
+> 无参  
+
+显示或隐藏目录    
 
 ## 四、配置
 ### `options `  
@@ -178,6 +185,12 @@ new TocHelper().reload()
 #### ~~2.15 `marginLeft6`~~
 > ~~暂无使用~~  
 
+#### 2.16 `hidden`
+> 隐藏目录的 `class`  
+
+类型：`string`   
+默认值：`toc-hidden`
+
 ### 3. `hightlight`  
 > 是否高亮显示  
 
@@ -246,12 +259,25 @@ new TocHelper().reload()
 >- 目录高度要大于可视高度 
 >- `tocFixed` 不等于 `false`
 
+### 10 `hiddenAfter`  
+> 目录隐藏后的回调，若有 `transtation` 动画，将会在动画结束后回调  
+
+类型： `Function`  
+默认值：`null`  
+
+### 10 `showBefore`  
+> 目录显示前的回调    
+
+类型： `Function`  
+默认值：`null`  
+
  ## 五、示例`options`全部配置信息  
  ```javascript
  {
     dom: '*[data-toc]', // 文章内容元素 选择器 或 HTMLElement
     classNames: {       // class选择器
         toc: 'toc',
+        hidden: 'toc-hidden',
         fxied: 'toc-fixed',
         brand: 'toc-brand',
         navbar: 'toc-navbar',
@@ -276,7 +302,9 @@ new TocHelper().reload()
         left: 0
     },
     maxDepth: 6,
-    autoScroll: true
+    autoScroll: true,
+    hiddenAfter: null,
+    showBefore: null
 }
  ```  
 

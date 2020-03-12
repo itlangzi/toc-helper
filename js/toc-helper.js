@@ -63,6 +63,7 @@ const defaultOptions = {
     dom: SELECTORS.DATA_TOC,
     classNames: {
         toc: CLASS_NAMES.TOC,
+        hidden: `${CLASS_NAMES.TOC}-hidden`,
         fxied: `${CLASS_NAMES.TOC}-fixed`,
         brand: `${CLASS_NAMES.TOC}-brand`,
         navbar: `${CLASS_NAMES.TOC}-navbar`,
@@ -87,7 +88,9 @@ const defaultOptions = {
         left: 0
     },
     maxDepth: 6,
-    autoScroll: true    //自动添加滚动条
+    autoScroll: true,    //自动添加滚动条
+    hiddenAfter: null,
+    showBefore: null
 }
 
 const TocHelper = function (selector, options = defaultOptions) {
@@ -556,6 +559,28 @@ TocHelper.prototype = {
             !classList.contains(tocFixedClassName) && classList.add(tocFixedClassName)
             tocFixed.top && (toc.style.top = tocFixed.top + 'px')
             tocFixed.left && (toc.style.left = tocFixed.left + 'px')
+        }
+    },
+    togger: function () {
+        if (!this.toc) {
+            return
+        }
+        const self = this
+        if (this.toc.classList.contains(this.options.classNames.hidden)) {
+            typeof self.options.showBefore === 'function' && self.options.showBefore(self)
+            this.toc.classList.remove(this.options.classNames.hidden)
+
+        } else {
+            const hiddenAfter = function () {
+                typeof self.options.hiddenAfter === 'function' && self.options.hiddenAfter(self)
+                self.toc.removeEventListener('transitionend', hiddenAfter, false)
+            }
+            if (window.getComputedStyle(this.toc, null).transition) {
+                this.toc.addEventListener('transitionend', hiddenAfter, false)
+            } else {
+                typeof self.options.hiddenAfter === 'function' && self.options.hiddenAfter(self)
+            }
+            this.toc.classList.add(this.options.classNames.hidden)
         }
     }
 }

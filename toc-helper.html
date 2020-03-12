@@ -70,6 +70,13 @@
             padding-right: 15px;
         }
 
+        .col-sm-12 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
         .col-sm-3 {
             flex: 0 0 25%;
             max-width: 25%;
@@ -158,10 +165,15 @@
             padding-left: 10px;
         }
 
-        button {
+        .actions {
             position: fixed;
             top: 93px;
+            right: 0px;
             z-index: 5;
+
+        }
+
+        .actions button {
             background: #00a3e8;
             color: #fff;
             border: 0;
@@ -240,7 +252,10 @@
     </header>
     <div class="container" style="margin-top:83px;">
         <div class="row">
-            <div class="col-sm-6" style="text-align:right;"><button onclick="switchBtn()">切换body/div</button></div>
+            <div class="col-sm-6 actions" style="text-align:right;">
+                <button onclick="switchBtn()">切换body/div</button>
+                <button onclick="togger()">显示/隐藏</button>
+            </div>
         </div>
         <div class="row">
             <div class="col-sm-9 normal" id="scroll">
@@ -257,6 +272,7 @@
                             <li>自动退级</li>
                             <li><code class="code">Hash</code>定位</li>
                             <li>目录跟随<code class="code">body/div</code>滚动</li>
+                            <li>可根据需要显示/隐藏</li>
                         </ul>
                     </div>
 
@@ -303,6 +319,7 @@ import TocHelper from 'toc-helper'</code></pre>
                     <p><code class="code">selector</code> 若为<code class="code">Object</code> ，则 <code
                             class="code">options = selector</code> 第二个参数无效</p>
                     <p><code class="code"><strong>options</strong></code></p>
+                   
                     <h3>megre(newOptions)</h3>
                     <small>TocHelper 的实例方法</small>
                     <p><code class="code"><strong> newOptions </strong> </code></p>
@@ -311,13 +328,21 @@ import TocHelper from 'toc-helper'</code></pre>
                     <p>合并初始的 <code class="code">options</code> 参数，并重新<code class="code">load</code>; 比如 <code
                             class="code">class</code> 样式发生改变, <code class="code">megre</code> 之后需要调用 <code
                             class="code">reload</code> 方法</p>
+                    
                     <h3> reload() </h3>
                     <small>无参</small>
                     <p>实例化以及重新<code class="code">megre</code>之后需要调用该方法</p>
                     <small> 实例化后若目录已经存在则调用该方法，若不存在则调用<code class="code">reset</code> 方法，生成目录会自动调用该方法 </small>
+                    
                     <h3> reset() </h3>
                     <small>无参</small>
                     <p>目录不存在或需要重新生成目录使用该方法</p>
+                    
+                    <h3> togger() </h3>
+                    <small>无参</small>
+                    <p>显示或隐藏目录 ,示例：<code class="code">tocHeloer.togger()</code></p>
+                    
+                    
                     <h2>四、配置</h2>
                     <h3><strong>options </strong></h3>
                     <h4><code class="code"><strong>dom</strong></code> </h4>
@@ -333,6 +358,11 @@ import TocHelper from 'toc-helper'</code></pre>
                     <small>目录元素的<code class="code">class</code>选择器名称</small>
                     <p>类型：<code class="code">string</code></p>
                     <p>默认值：<code class="code">toc</code></p>
+
+                    <h5><code class="code"><strong> hidden </strong></code> </h5>
+                    <small>隐藏/显示<code class="code">class</code>选择器名称</small>
+                    <p>类型：<code class="code">string</code></p>
+                    <p>默认值：<code class="code">toc-hidden</code></p>
 
                     <h5><code class="code"><strong> fxied </strong></code> </h5>
                     <small>目录元素<code class="code">position=fixed</code>的<code class="code">class</code>选择器名称</small>
@@ -455,9 +485,20 @@ import TocHelper from 'toc-helper'</code></pre>
                     <small>层级最大为<code class="code">6</code> ，最小为<code class="code">1</code>，其他值无效</small>
 
                     <h4><code class="code"><strong> autoScroll </strong></code></h4>
-                    <small>自动添加滚动条; 若<code class="code">autoScroll=true</code>需满足以下条件：<br/>1、目录高度要大于可视高度 <br/>2、<code class="code">tocFixed</code>不等于<code class="code">false</code></small>
+                    <small>自动添加滚动条; 若<code class="code">autoScroll=true</code>需满足以下条件：<br />1、目录高度要大于可视高度 <br />2、<code
+                            class="code">tocFixed</code>不等于<code class="code">false</code></small>
                     <p>类型：<code class="code"> Boolean </code></p>
                     <p>默认值：<code class="code">true</code></p>
+
+                    <h4><code class="code"><strong> hiddenAfter </strong></code></h4>
+                    <small>调用<code class="code">togger()</code>方法隐藏目录后的回调；若有<code class="code">transition</code>动画，将会在动画结束后回调</small>
+                    <p>类型：<code class="code"> Function </code></p>
+                    <p>默认值：<code class="code">null</code></p>
+
+                    <h4><code class="code"><strong> showBefore </strong></code></h4>
+                    <small>调用<code class="code">togger()</code>方法显示目录后的回调；</small>
+                    <p>类型：<code class="code"> Function </code></p>
+                    <p>默认值：<code class="code">null</code></p>
 
                     <h2>五、示例<code class="code">options</code>全部配置信息</h2>
 
@@ -466,6 +507,7 @@ import TocHelper from 'toc-helper'</code></pre>
     dom: '*[data-toc]', // 文章内容元素 选择器 或 HTMLElement
     classNames: {       // class选择器
         toc: 'toc',
+        hidden: 'toc-hidden',
         fxied: 'toc-fixed',
         brand: 'toc-brand',
         navbar: 'toc-navbar',
@@ -490,7 +532,9 @@ import TocHelper from 'toc-helper'</code></pre>
         left: 0
     },
     maxDepth: 6,
-    autoScroll: true
+    autoScroll: true,
+    hiddenAfter: null,
+    showBefore: null
 }
                     </code></pre>
                     <h1>注意：</h1>
@@ -520,7 +564,7 @@ import TocHelper from 'toc-helper'</code></pre>
                 </div>
             </div>
 
-            <div class="col-sm-3">
+            <div class="col-sm-3" id="toc-container">
                 <div class="toc" id="toc">
                     <!-- <div class="toc-brand">目录</div>
                     <nav class="toc-navbar">
@@ -561,18 +605,28 @@ import TocHelper from 'toc-helper'</code></pre>
     <script src="./lib/prism.js"></script>
     <script src="./js/toc-helper.min.js"></script>
     <script>
+        const scroll = document.querySelector('#scroll')
         const tocHelper = new TocHelper({
             dom: 'div[data-toc]',
             offsetBody: document.querySelector('#scroll'),
             tocFixed: {
                 top: 83
+            },
+            beforeShow: function () { 
+                scroll.classList.remove('col-sm-12')
+            },
+            afterHidden: function () {
+                scroll.classList.add('col-sm-12')
             }
         })
         tocHelper.reset()
         const switchBtn = function () {
-            const scroll = document.querySelector('#scroll')
             scroll.classList.contains('normal') ? (scroll.classList.remove('normal'), scroll.classList.add('scroll')) : (scroll.classList.add('normal'), scroll.classList.remove('scroll'))
             tocHelper.megre({ offsetBody: document.querySelector('#scroll') }).reload()
+        }
+
+        const togger = function () {
+            tocHelper.togger()
         }
 
     </script>
