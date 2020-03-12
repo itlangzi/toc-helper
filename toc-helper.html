@@ -612,10 +612,10 @@ import TocHelper from 'toc-helper'</code></pre>
             tocFixed: {
                 top: 83
             },
-            beforeShow: function () { 
+            showBefore: function () { 
                 scroll.classList.remove('col-sm-12')
             },
-            afterHidden: function () {
+            hiddenAfter: function () {
                 scroll.classList.add('col-sm-12')
             }
         })
