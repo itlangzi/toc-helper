@@ -1,332 +1,311 @@
 # toc-helper
+
 <center>
-    <img src="./images/toc.png" title="toc-helper" alt="toc-helper">
-</center>  
+    <img src="./demo/logo.svg" title="toc-helper" alt="toc-helper" style="width: 64px">
+</center>
 
-演示站点:  <a href="http://www.itlangzi.com/toc-helper" title="TocHelper演示站点" target="_blank">http://www.itlangzi.com/toc-helper</a>   
-## 一、 简介
-`TocHelper` 是一款给文章自动生成目录及侧边栏目录滚动特效的插件  
-**特点**  
-- jQuery Free  
-- 方便、灵活、高度定制化  
-- 自动退级  
-- `Hash` 定位  
-- 目录跟随 `Body / div` 滚动  
-- 可根据需要显示/隐藏  
+`TocHelper` 是一款给文章自动生成目录及侧边栏目录滚动特效的插件
 
-## 二、 使用  
-### 2.1  浏览器  
-2.1.1 引入css和js
-```html
-<link href="css/toc-helper.min.css" rel="stylesheet" />
-<script src="js/toc-helper.min.js"></script>
-```  
-2.1.2 文章内容添加 `data` 属性，值指向目录元素： `data-toc="#toc"`  
-```html
-<div data-toc="#toc"> </div>
-```  
-**注意：** `#toc` 选择器对应的目录元素必须存在  
-```html
-<div id="toc"> </div>
-```  
-2.1.3 目录已经存在, 调用 `reload()` 方法
-```javascript
-new TocHelper().reload();
-```  
-2.1.4 目录若不存在, 调用 `reset()` 方法，自动创建目录    
-```javascript
-new TocHelper().reset();
-```  
-### 2.2  使用 `Webpack`, `Browserify`, `Gulp`, `Rollup` 等构建工具   
-2.2.1 使用 `npm` 安装 `TocHelper`  
-`npm install toc-helper --save`  OR  `yarn add toc-helper`  
-2.2.2 使用 `require` 引入 
-```javascript
-require('toc-helper/css/toc-helper.min.css')
+> v1 [入口](https://github.com/itlangzi/toc-helper/blob/v1/README.md)
+
+> 预览 [`Demo`](http://itlangzi.com/s/toc-helper.html)
+
+
+# 一、 v2 特性
+- 简介，减少了大量的配置，去除不必要的API，仅需要引入一个js文件
+- 性能优化，联动滚动更加流畅，自动停靠顶部更加精准
+- 目录支持自动展开、折叠
+- 自动定位，初始目录高亮位置自动识别
+- 支持显示、隐藏、自适应宽度变化
+- 支持非标题标签, 但需要提供 `data-level` 属性
+- 支持内容局部滚动（非`body`, 内容`div`滚动）
+- 支持 `React、Vue、Svelte`
+
+# 二、 使用
+## 浏览器
+1. 引入JS
+```js
+<script src="lib/umd/index.js"></script>
+```
+> `esmodule` 引入 `lib/es/index.js`
+
+2. 使用
+```js
+new TocHelper(el [, options])
+```
+
+## npm方式
+### 1. 安装
+```bash
+npm install toc-helper --save 
+# 或者
+yarn add toc-helper
+```
+### 2. 使用  
+#### 2.1 `require`
+```js
 const TocHelper = require('toc-helper')
-```  
-2.2.3 使用 `import` 引入  
-```javascript
-import 'toc-helper/css/toc-helper.min.css'
-import TocHelper from 'toc-helper'
-```  
-2.2.4 简单应用  
-```javascript
-new TocHelper().reload()
-```  
+new TocHelper(el [, options])
+```
 
-## 三、API  
-### `TocHelper([selector,options])`  
-> 构造器方法, 只能通过 `new` 创建实例  
+#### 2.2 `import`
+```js
+import TocHelper from 'toc-helper'
+new TocHelper(el [, options])
+```
+#### 2.3 `React` 示例
+##### 2.3.1 普通模式
+  ```js
+  import TocHelper from 'toc-helper'
+  class App extends React.PureComponent{
+    constructor(props){
+      super(props)
+      this.ref = null
+    }
+    componentDidMount(){
+      new TocHelper(this.ref [, options])
+    }
+    render(){
+      return <div ref={ref => this.ref = ref} />
+    }
+  } 
+  ```
+##### 2.3.2 Hook 模式
+   ```js
+  import TocHelper from 'toc-helper'
+  export default App(){
+    const ref = useRef()
+    useEffect(()=>{
+      new TocHelper(ref [, options])
+    })
+    return <div ref={ref} />
+  }
+  ```
+#### 2.4 `vue` 示例 `v3`
+```js
+<script>
+  import TocHelper from 'toc-helper'
+  setup(props, { emit }) {
+    const toc = ref(null);
+    let helper = null;
+    onMounted(function () {
+      helper = new TocHelper(toc [, options]);
+    });
+
+    return { toc };
+  },
+</script>
+<template>
+  <div ref="toc"></div>
+</template>
+```
+#### 2.5 `svelte` 示例
+```js
+<script>
+  import TocHelper from 'toc-helper'
+  let toc = null
+  let helper = null
+  onMount(function(){
+    helper = new TocHelper(toc [, options])
+  })
+</script>
+<div bind:this={toc}/>
+```
+# 三、API
+## **`TocHelper(selector [, options])`**
+> 构造器方法, 只能通过 new 创建实例  
 
 **selector**  
-类型：`string | HTMLElement | Object `  
-默认值： `无`  
-> `selector` 若为字符串，则必须是选择器，切可以通过该选择器获取相应的元素，否则无效  
-> `selector` 若为 `Object` ，则 `options = selector` 第二个参数无效  
+类型：`string` | `HTMLElement`  
+默认值：`无`  
+必须：`是`
+> selector 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素，否则将报错
 
 **options**  
-类型：` Object `  
-默认值： `{}`   
-> 合并初始的 `options` 参数，并重新 `load`; 比如 `class` 样式发生改变; `megre` 之后需要调用 `reload` 方法  
+类型：`object` | `undefined`  
+默认值：`无`  
+必须：`可选`
 
-### reload()  
+## **`resetHeadings`**  
 > 无参  
 
-实例化以及重新 `megre` 之后需要调用该方法  
->实例化后若目录已经存在则调用该方法，若不存在则调用 `reset` 方法，生成目录会自动调用该方法  
+实例方法，重新解析 `heading`, 若数据是异步获取，该方法会有用
 
-### reset()  
-> 无参  
+## **`isEmpty`**  
+> 无参
 
-目录不存在或需要重新生成目录使用该方法  
+实例方法，判断是否有 `heading`
 
 
-### togger()  
-> 无参  
+# 四、配置  
+## **`options`**
+### 1. `contentSelector`  
+类型: `string` | `HTMLElement`  
+默认值: `document.body`  
 
-显示或隐藏目录    
+> 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素
 
-## 四、配置
-### `options `  
-#### 1. `dom`  
-> 文章内容 `Dom` 元素， 选择器或 `HTMLElement` 类型的 `Dom` 元素  
+通过该选择器解析内容中的目录元素
 
-类型：`string | HTMLElement`  
-默认值：`*[data-toc]`  
+### 2. `scrollSelector`  
+类型: `string` | `HTMLElement`  
+默认值: `document.body`  
+> 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素
 
-### 2. `classNames`
-`class` 选择器名称  
+滚动元素的选择器; 若内容不是整个文档，且滚动也不是整个文档，是局部内容的局部咕哝则需要指定该值，否则目录无法同步滚动  
 
-#### 2.1 `toc`  
-> 目录元素的 `class` 选择器名称  
+### 3. `fixedSelector`  
+类型: `string` | `HTMLElement`  
+默认值: `目录本身`  
+> 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素
 
-类型：`string`  
-默认值：`toc`  
+文档滚动到该选择器元素的位置就停靠在顶部
 
-#### 2.2 `fxied`  
-> 目录元素 `position=fixed` 的 `class` 选择器名称 
+### 4. `headingSelector`  
+类型: `string`  
+默认值: `h1, h2, h3, h4, h5, h6`  
 
-类型：`string`  
-默认值：`toc-fixed`  
+内容元素通过该选择器解析出所有的目录  
 
-#### 2.3 `brand`  
-> `目录` 字的 `class` 选择器名称
+> 1. 可以不是`h`标签，但是标签要提供属性 `data-level` 已指定当前目录的层级  
+> 2. 具体用法是`[contentSelector].querySelectorAll(headingSelector)`, 所以需要正确配置 `contentSelector`和`headingSelector`, 否则解析的目录将会为空
 
-类型：`string`  
-默认值：`toc-brand`  
 
-#### 2.4 `navbar`  
-> 目录菜单 `class` 选择器名称
+### 5. `collapsedLevel`  
+类型: `number`  
+默认值: `3`
 
-类型：`string`  
-默认值：`toc-navbar`  
+该层级以上的目录将默认折叠(隐藏)，当内容滚动该位置对应的目录或点击后都将自动展开，之后又将折叠  
 
-#### 2.5 `hightlight`  
-> 激活高亮/鼠标悬停高亮的 `class` 选择器名称
-
-类型：`string`  
-默认值：`toc-hightlight`  
-
-#### 2.6 `nav`  
-> 菜单父级节点`class`选择器名称
-
-类型：`string`  
-默认值：`toc-nav`  
-
-#### 2.7 `link`  
-> 菜单项`class`选择器名称
-
-类型：`string`  
-默认值：`toc-link`  
-
-#### 2.8 `active`  
-> 菜单项激活后的`class`选择器名称
-
-类型：`string`  
-默认值：`active`  
-
-#### 2.9 `marginLeft1`  
-> 二级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-1`  
-
-#### 2.10 `marginLeft1`  
-> 二级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-1`  
-
-#### 2.11 `marginLeft2`  
-> 三级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-2`  
-
-#### 2.12 `marginLeft3`  
-> 四级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-3`  
-
-#### 2.13 `marginLeft4`  
-> 五级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-4`  
-
-#### 2.14 `marginLeft5`  
-> 六级标题偏移的`class`选择器名称
-
-类型：`string`  
-默认值：`ml-5`  
-
-#### ~~2.15 `marginLeft6`~~
-> ~~暂无使用~~  
-
-#### 2.16 `hidden`
-> 隐藏目录的 `class`  
-
-类型：`string`   
-默认值：`toc-hidden`
-
-### 3. `hightlight`  
-> 是否高亮显示  
-
-类型：` Boolean `  
-默认值：`true`  
-
-### 4. `brand`  
-> 目录文本  
-
-类型：` string `  
-默认值：`目录`  
-
-### 5. `shadow`  
-> 目录阴影   
-
-类型：` string | false `  
-默认值：`shadow`  
-> 若为`string` ，则提供阴影的样式`class`选择器名称,` false`表示禁用阴影
 
 ### 6. `idPrefix`  
-> 生成`ID`选择器的前缀  
+类型: `string`  
+默认值: `bitoc-heading-`
 
-类型：`string`  
-默认值：`toc-heading-`  
-> 后缀由数字组成  
+目录ID的前缀
 
-### 7. `offsetBody`  
-> 内容父级定位元素，该元素必须存在`position`属性，切`position`的值不等于`static`, 否则此值等于`body`   
+> 仅影响目录本身，不影响内容  
 
-类型：`string | HTMLElement`  
-默认值：`document.body`  
-> 为`string`类型时，必须是选择器；无论是`string`类型，还是`HTMLElement`类型，都必须有`position`属性，切`position`的值不等于`static`，否则此值等于`body`  
+### 7. `levelClassPrefix`  
+类型: `string`  
+默认值: `bitoc-ml-`
 
-### 8. `topFixed`  
-> 不使用或设置目录`fixed`定位   
+层级偏移样式前缀，默认二级目录偏移`1rem`, 三级目录偏移`2rem`, 以此累加；可用样式更改，默认样式名
 
-类型：`false | Object`  
-默认值：`如下`  
-> `false`表示不使用`fixed`定位；`Object`如下：  
+- 一级目录: bitoc-ml-1
+- 二级目录: bitoc-ml-2
+- 三级目录: bitoc-ml-3
+- 四级目录: bitoc-ml-4
+- 五级目录: bitoc-ml-5
+- 六级目录: bitoc-ml-6
 
-#### 8.1 `top`  
-> 目录距离文档顶部的偏移量  
 
-类型： `Number`  
-默认值：`24`  
+### 8. `scrollDuration`  
+类型: `number`  
+默认值: `200`
 
-#### 8.2 `left`  
-> 目录距离文档左侧的偏移量  
+默认支持滚动动画，动画的持续时间由该值控制  
 
-类型： `Number`  
-默认值：`无`  
+### 9. `scrollOffset`  
+类型: `number`  
+默认值: `0`
 
-### 9 `maxDepth`  
-> 目录最大层级  
+滚动偏移量 
 
-类型： `Number`  
-默认值：`6`  
-> 层级最大为`6` ，最小为`1`，其他值无效
-
-### 10 `autoScroll`  
-> 自动添加滚动条  
-
-类型： `Boolean`  
-默认值：`true`  
->若 `autoScroll=true` 需满足以下条件：
->- 目录高度要大于可视高度 
->- `tocFixed` 不等于 `false`
-
-### 10 `hiddenAfter`  
-> 目录隐藏后的回调，若有 `transtation` 动画，将会在动画结束后回调  
-
-类型： `Function`  
-默认值：`null`  
-
-### 10 `showBefore`  
-> 目录显示前的回调    
-
-类型： `Function`  
-默认值：`null`  
-
- ## 五、示例`options`全部配置信息  
- ```javascript
- {
-    dom: '*[data-toc]', // 文章内容元素 选择器 或 HTMLElement
-    classNames: {       // class选择器
-        toc: 'toc',
-        hidden: 'toc-hidden',
-        fxied: 'toc-fixed',
-        brand: 'toc-brand',
-        navbar: 'toc-navbar',
-        hightlight: 'toc-hightlight',
-        nav: 'toc-nav',
-        link: 'toc-link',
-        active: 'active',
-        marginLeft1: 'ml-1',
-        marginLeft2: 'ml-2',
-        marginLeft3: 'ml-3',
-        marginLeft4: 'ml-4',
-        marginLeft5: 'ml-5',
-        marginLeft6: 'ml-6'
-    },
-    hightlight: true,
-    brand: '目录',
-    shadow: 'shadow',
-    idPrefix: 'toc-heading-',
-    offsetBody: document.body,
-    tocFixed: {
-        top: 24,
-        left: 0
-    },
-    maxDepth: 6,
-    autoScroll: true,
-    hiddenAfter: null,
-    showBefore: null
-}
- ```  
-
-# 注意：
-使用锚点 / `Hash`定位时，若存在头部使用了`fixed`或`absolute`定位，会出现定位没达到预期效果; 可将所有的标题`padding-top`等于头部的高, `margin-top`等于头部高的相反值，这样可以解决定位不准切不会影响布局；
-
-**示例代码如下:**  
+> 该值只针对内容，点击目录后内容会自动滚动到先对应的位置；内若容顶部有fixed或absolute定位，滚动的位置将会有偏差，解决的方案有两种，假如`fixed`定位元素的高度为 `64px`:  
+1. 使用`css`将所有的标题`padding-top`等于头部的高, `margin-top`等于头部高的相反值; 示例`css`代码如下
 ```css
-*[data-toc] h1,
-*[data-toc] h2,
-*[data-toc] h3,
-*[data-toc] h4,
-*[data-toc] h5,
-*[data-toc] h6 {
-    margin-top: -83px;
-    padding-top: 83px;
+[contentSelector] h1,
+[contentSelector] h2,
+[contentSelector] h3,
+[contentSelector] h4,
+[contentSelector] h5,
+[contentSelector] h6{
+  margin-top: -64px;
+  padding-top: 64px;
 }
-```  
-# 即将支持的功能  
-- ~~目录自动添加滚动条 已实现~~
-- ~~实现内容->目录联动滚动 已实现~~
-- 自动折叠/展开
-- 支持横向目录
-- 同步高亮文章中的标题
+```
+2. 配置该值为 `64`, 不要加单位  
+- **注意**: 以上两种方案只能`二选其一`
+ 
+### 10. `fixedOffset`  
+类型: `number` | `false`  
+默认值: 动态计算
 
+目录滚动到该位置将自动停靠在顶部
+
+1. 该值默认通过目录元素计算获取，若初始目录处于隐藏且整个文档有滚动的话，自动计算的值将会有很大的偏差，所以尽量要指定该值  
+2. 若顶部有`fixed`布局的元素，则需要减去`fixed`布局元素的高度，否则可能会有较大的抖动  
+3. 若该值为`false`, 将禁用停靠功能
+
+### 11. `fixedClassName`  
+类型: `string`  
+默认值: `.bitoc-fixed`
+
+目录停靠顶部样式，默认样式
+```css
+.bitoc-fixed{
+  position: fixed !important;
+}
+```
+
+### 12. `beforeFixed`
+类型: `Function(isFixed: boolean) => false|void`  
+默认值: `null`  
+目录 `Fixed` 前的钩子函数
+> `isFixed = true`,表示将要`Fixed`  
+> `isFixed = false`, 表示将要取消`Fixed`  
+> **若返回`false`将取消`fixed`操作**
+
+### 13. `afterFixed`
+类型: `Function(isFixed: boolean) => void`  
+默认值: `null`  
+目录`Fixed`后的钩子函数
+> `isFixed = true`,表示已经成功 `Fixed`  
+> `isFixed = false`, 表示已经成功取消 `Fixed`  
+
+# 五、其他注意
+1. 目录停靠默认没有指定`top`的偏移量，需要添加相应的样式；比如；加入顶部有`fixed`布局元素，且高度为`64px`,则需要添加样式
+```css
+.bitoc-fixed{
+  top: 3.875rem;
+}
+```
+2. 目录本身并有宽度限制停靠后，整个目录将会被内容撑开，所以需要限制停靠后的目录宽度，示例:
+```css
+ .bitoc-fixed {
+    max-width: 27rem;
+  }
+```
+使其支持响应式
+```css
+ @media screen and (min-width: 1024px) and (max-width: 1216px) {
+    #toc-box.bitoc-fixed {
+      max-width: 19rem;
+    }
+  }
+```
+
+3. 目录本身没有高度限制，停靠后目录可能会超出，需要添加高度限制，若目录达到该限制将自动滚动，无需添加其他样式，示例
+```css
+.bitoc-fixed {
+  max-height: calc(100vh - 9rem);
+}
+```
+
+# 六、开发
+```bash
+git clone https://github.com/itlangzi/toc-helper
+cd toc-helper
+```
+## 开发环境
+```bash
+yarn dev --open
+```
+
+> 在浏览访问 http://localhost:3000/demo
+
+## 构建生产版本  
+```bash
+yarn build
+```
