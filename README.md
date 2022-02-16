@@ -1,20 +1,18 @@
 # toc-helper
 
-`TocHelper` 是一款给文章自动生成目录及侧边栏目录滚动特效的插件
+`toc-helper` 是一款给文章自动生成目录的插件
 
-> v1 [入口](https://github.com/itlangzi/toc-helper/blob/v1/README.md)
-
-> 预览 [`Demo`](https://www.itlangzi.com/s/tochelper.html)
-
+> v1 [入口](https://github.com/itlangzi/toc-helper/blob/v1/README.md)  
+> v2 在线预览 [`Demo`](http://itlangzi.com/s/toc-helper.html "toc-helper")
 
 # 一、 v2 特性
-- 简介，减少了大量的配置，去除不必要的API，仅需要引入一个js文件
+- 用法精简，减少了大量的配置，去除不必要的API，仅需要引入一个js文件
 - 性能优化，联动滚动更加流畅，自动停靠顶部更加精准
 - 目录支持自动展开、折叠
 - 自动定位，初始目录高亮位置自动识别
 - 支持显示、隐藏、自适应宽度变化
 - 支持非标题标签, 但需要提供 `data-level` 属性
-- 支持内容局部滚动（非`body`, 内容`div`滚动）
+- 支持局部滚动（非`body`, 内容`div`滚动）
 - 支持 `React、Vue、Svelte`
 
 # 二、 使用
@@ -125,7 +123,7 @@ new TocHelper(el [, options])
 ## **`resetHeadings`**  
 > 无参  
 
-实例方法，重新解析 `heading`, 若数据是异步获取，该方法会有用
+实例方法，调用后将重新解析 `heading`, 若数据是异步获取，该方法会有用
 
 ## **`isEmpty`**  
 > 无参
@@ -148,14 +146,14 @@ new TocHelper(el [, options])
 默认值: `document.body`  
 > 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素
 
-滚动元素的选择器; 若内容不是整个文档，且滚动也不是整个文档，是局部内容的局部咕哝则需要指定该值，否则目录无法同步滚动  
+滚动元素的选择器; 若内容不是整个文档，且滚动也不是整个文档，是文档内的某个容器滚动则需要指定该值，否则目录无法同步滚动  
 
 ### 3. `fixedSelector`  
 类型: `string` | `HTMLElement`  
 默认值: `目录本身`  
 > 若为字符串，则必须是选择器，切可以通过`ducument.querySelector`获取相应的元素
 
-文档滚动到该选择器元素的位置就停靠在顶部
+文档滚动到该选择器元素的位置就`fixed`在顶部
 
 ### 4. `headingSelector`  
 类型: `string`  
@@ -180,20 +178,20 @@ new TocHelper(el [, options])
 
 目录ID的前缀
 
-> 仅影响目录本身，不影响内容  
+> 仅影响目录本身，对文档内容不产生副作用
 
 ### 7. `levelClassPrefix`  
 类型: `string`  
 默认值: `bitoc-ml-`
 
-层级偏移样式前缀，默认二级目录偏移`1rem`, 三级目录偏移`2rem`, 以此累加；可用样式更改，默认样式名
+层级偏移样式前缀，默认二级目录(`bitoc-ml-2`)偏移`1rem`, 三级目录(`bitoc-ml-3`)偏移`2rem`, 以此累加；可用样式更改，默认样式名
 
-- 一级目录: bitoc-ml-1
-- 二级目录: bitoc-ml-2
-- 三级目录: bitoc-ml-3
-- 四级目录: bitoc-ml-4
-- 五级目录: bitoc-ml-5
-- 六级目录: bitoc-ml-6
+- 一级目录: `bitoc-ml-1`
+- 二级目录: `bitoc-ml-2`
+- 三级目录: `bitoc-ml-3`
+- 四级目录: `bitoc-ml-4`
+- 五级目录: `bitoc-ml-5`
+- 六级目录: `bitoc-ml-6`
 
 
 ### 8. `scrollDuration`  
@@ -208,20 +206,21 @@ new TocHelper(el [, options])
 
 滚动偏移量 
 
-> 该值只针对内容，点击目录后内容会自动滚动到先对应的位置；内若容顶部有fixed或absolute定位，滚动的位置将会有偏差，解决的方案有两种，假如`fixed`定位元素的高度为 `64px`:  
-1. 使用`css`将所有的标题`padding-top`等于头部的高, `margin-top`等于头部高的相反值; 示例`css`代码如下
-```css
-[contentSelector] h1,
-[contentSelector] h2,
-[contentSelector] h3,
-[contentSelector] h4,
-[contentSelector] h5,
-[contentSelector] h6{
-  margin-top: -64px;
-  padding-top: 64px;
-}
-```
-2. 配置该值为 `64`, 不要加单位  
+> 该值只针对内容，点击目录后内容会自动滚动到对应的位置；若内容顶部有fixed或absolute定位，滚动的位置将会有偏差，解决的方案有两种:
+> 假设`fixed`定位元素的高度为 `64px`:
+- 方案一: 使用`css`将所有的标题`padding-top`等于头部的高, `margin-top`等于头部高的相反值; 示例`css`代码如下
+  ```css
+  [contentSelector] h1,
+  [contentSelector] h2,
+  [contentSelector] h3,
+  [contentSelector] h4,
+  [contentSelector] h5,
+  [contentSelector] h6{
+    margin-top: -64px;
+    padding-top: 64px;
+  }
+  ```
+- 方案二: 配置`scrollOffset`值为 `64`, 不要加单位  
 - **注意**: 以上两种方案只能`二选其一`
  
 ### 10. `fixedOffset`  
@@ -230,7 +229,7 @@ new TocHelper(el [, options])
 
 目录滚动到该位置将自动停靠在顶部
 
-1. 该值默认通过目录元素计算获取，若初始目录处于隐藏且整个文档有滚动的话，自动计算的值将会有很大的偏差，所以尽量要指定该值  
+1. 该值默认通过目录元素[`fixedSelector`]计算获取，若初始目录处于隐藏且整个文档有滚动的话，自动计算的值将会有很大的偏差，所以尽量要精确指定该值  
 2. 若顶部有`fixed`布局的元素，则需要减去`fixed`布局元素的高度，否则可能会有较大的抖动  
 3. 若该值为`false`, 将禁用停靠功能
 
@@ -251,7 +250,7 @@ new TocHelper(el [, options])
 目录 `Fixed` 前的钩子函数
 > `isFixed = true`,表示将要`Fixed`  
 > `isFixed = false`, 表示将要取消`Fixed`  
-> **若返回`false`将取消`fixed`操作**
+> **若返回`false`将取消`fixed`操作, 同时`afterFixed`也不会调用**
 
 ### 13. `afterFixed`
 类型: `Function(isFixed: boolean) => void`  
@@ -261,19 +260,19 @@ new TocHelper(el [, options])
 > `isFixed = false`, 表示已经成功取消 `Fixed`  
 
 # 五、其他注意
-1. 目录停靠默认没有指定`top`的偏移量，需要添加相应的样式；比如；加入顶部有`fixed`布局元素，且高度为`64px`,则需要添加样式
+1. 目录停靠默认没有指定`top`的偏移量，需要添加相应的样式；比如：假如顶部有`fixed`布局元素，且高度为`64px`,则需要添加样式
 ```css
 .bitoc-fixed{
   top: 3.875rem;
 }
 ```
-2. 目录本身并有宽度限制停靠后，整个目录将会被内容撑开，所以需要限制停靠后的目录宽度，示例:
+2. 目录本身并有宽度限制，`fixed`后整个目录将会被内容撑开，所以需要限制停靠后的目录宽度，示例:
 ```css
  .bitoc-fixed {
     max-width: 27rem;
   }
 ```
-使其支持响应式
+使其支持响应式，示例:
 ```css
  @media screen and (min-width: 1024px) and (max-width: 1216px) {
     #toc-box.bitoc-fixed {
@@ -282,7 +281,7 @@ new TocHelper(el [, options])
   }
 ```
 
-3. 目录本身没有高度限制，停靠后目录可能会被内容撑开超出屏幕高度，需要添加高度限制，若目录达到该限制将自动滚动，无需添加其他样式，示例
+3. 目录本身没有高度限制，`fixed`后后目录可能会被内容撑开超出屏幕高度，需要添加高度限制，若目录达到该限制将自动滚动，无需添加其他样式，示例:
 ```css
  .bitoc {
    max-height: 20.5rem;
