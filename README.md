@@ -1,14 +1,10 @@
 # toc-helper
 
-<center>
-    <img src="./demo/logo.svg" title="toc-helper" alt="toc-helper" style="width: 64px">
-</center>
-
 `TocHelper` 是一款给文章自动生成目录及侧边栏目录滚动特效的插件
 
 > v1 [入口](https://github.com/itlangzi/toc-helper/blob/v1/README.md)
 
-> 预览 [`Demo`](http://itlangzi.com/s/toc-helper.html)
+> 预览 [`Demo`](https://www.itlangzi.com/s/tochelper.html)
 
 
 # 一、 v2 特性
@@ -286,10 +282,10 @@ new TocHelper(el [, options])
   }
 ```
 
-3. 目录本身没有高度限制，停靠后目录可能会超出，需要添加高度限制，若目录达到该限制将自动滚动，无需添加其他样式，示例
+3. 目录本身没有高度限制，停靠后目录可能会被内容撑开超出屏幕高度，需要添加高度限制，若目录达到该限制将自动滚动，无需添加其他样式，示例
 ```css
-.bitoc-fixed {
-  max-height: calc(100vh - 9rem);
+ .bitoc {
+   max-height: 20.5rem;
 }
 ```
 
