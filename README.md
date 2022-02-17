@@ -3,7 +3,7 @@
 `toc-helper` 是一款给文章自动生成目录的插件
 
 > v1 [入口](https://github.com/itlangzi/toc-helper/blob/v1/README.md)  
-> v2 在线预览 [`Demo`](http://itlangzi.com/s/toc-helper.html "toc-helper")
+> v2 在线预览 [`Demo`](https://itlangzi.com/s/tochelper.html "toc-helper")
 
 # 一、 v2 特性
 - 用法精简，减少了大量的配置，去除不必要的API，仅需要引入一个js文件
