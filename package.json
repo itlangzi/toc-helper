@@ -1,6 +1,6 @@
 {
   "name": "toc-helper",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "license": "MIT",
   "types": "src/index.d.ts",
   "module": "lib/es/index.js",
