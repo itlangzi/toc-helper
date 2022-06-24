@@ -120,7 +120,7 @@ new TocHelper(el [, options])
 默认值：`无`  
 必须：`可选`
 
-## **`resetHeadings`**  
+## **`reset`**  
 > 无参  
 
 实例方法，调用后将重新解析 `heading`, 若数据是异步获取，该方法会有用
@@ -129,6 +129,11 @@ new TocHelper(el [, options])
 > 无参
 
 实例方法，判断是否有 `heading`
+
+## **`syncScroll`**  
+> 无参
+
+实例方法，同步滚动，隐藏到显示可调用该方法进行同步
 
 
 # 四、配置  

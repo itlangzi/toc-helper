@@ -17,6 +17,7 @@ interface Options {
 }
 export default class TocHelper {
   constructor(el: Selector, options?: Options);
-  resetHeadings(): void;
+  reset(): void;
+  syncScroll(): void;
   isEmpty(): Boolean;
 }

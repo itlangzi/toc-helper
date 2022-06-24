@@ -1,10 +1,19 @@
+// @ts-ignore
 import Toc from "./toc.svelte";
 
+/**
+ * @param {undefined|String|HTMLElement} el 
+ * @param {String} propName 
+ * @param {HTMLElement} [def] 
+ * @param {Boolean} [allow] 
+ * @returns {HTMLElement|undefined}
+ */
 const selector = function (el, propName, def, allow) {
   if (!el && allow) {
-    return el;
+    return undefined;
   }
   if (typeof el === "string") {
+    // @ts-ignore
     el = document.querySelector(el);
   }
   if (!(el instanceof HTMLElement)) {
@@ -18,6 +27,24 @@ const selector = function (el, propName, def, allow) {
 };
 
 class TocHelper {
+  /**
+   * @param {undefined|String|HTMLElement} el 
+   * @param {{ 
+   *  contentSelector?: undefined|String|HTMLElement, 
+   *  scrollSelector?: undefined|String|HTMLElement,
+   *  fixedSelector?: undefined|String|HTMLElement,
+   *  headingSelector?: undefined|String|HTMLElement,
+   *  collapsedLevel?: Number,
+   *  idPrefix?: String,
+   *  levelClassPrefix?: String,
+   *  scrollDuration?: Number,
+   *  fixedOffset?: Number,
+   *  fixedClassName?: String,
+   *  scrollOffset?: Number,
+   *  beforeFixed?: Function,
+   *  afterFixed?: Function,
+   * }} [options] 
+   */
   constructor(el, options) {
     const {
       contentSelector,
@@ -70,11 +97,20 @@ class TocHelper {
     });
   }
 
-  resetHeadings() {
-    this.toc.resetHeadings();
+  reset() {
+    // @ts-ignore
+    this.toc.reset();
   }
+  /**
+   * @returns {Boolean}
+   */
   isEmpty() {
+    // @ts-ignore
     return this.toc.isEmpty();
+  }
+  syncScroll() {
+    // @ts-ignore
+    this.toc.syncScroll();
   }
 }
 

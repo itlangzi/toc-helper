@@ -1,17 +1,18 @@
 <script>
   import { onMount } from "svelte";
   import Nav from "./nav.svelte";
-  import { active, hightlight, scrollLock } from "./store";
+  import { active, locker } from "./store";
 
   import {
     build,
-    getScrollTop,
+    scrollTop,
     getScrollElement,
     scrollTo,
     getOffset,
+    // debounce,
     throttle,
-    debounce,
     isDoc,
+    call,
   } from "./util";
 
   // export let tocElement;
@@ -29,6 +30,9 @@
   // 但是若是隐藏且有滚动的情况下计算会有误差
   // 建议给固定的值
   // false 表示禁用
+  /**
+   * @type {Number|Boolean|NaN}
+   */
   export let fixedOffset = 0;
   export let fixedClassName = "bitoc-fixed";
   // 滚动偏移量，若滚动元素内有fixed布局，一般是header采用fixed布局
@@ -41,21 +45,33 @@
   // }
   export let scrollOffset = 0;
 
-  export const resetHeadings = function () {
-    resolveHeadings();
+  export let beforeFixed = null;
+  export let afterFixed = null;
+
+  export const reset = function () {
+    parseHeadings();
+    onscroll();
   };
 
   export const isEmpty = function () {
     return nodes.length === 0;
   };
 
-  export let beforeFixed = null;
-  export let afterFixed = null;
+  export const syncScroll = function () {
+    oriFixedOffset = getOffset(
+      fixedElement || tocMain,
+      document.documentElement
+    ).y;
+    onscroll();
+  };
 
   // 所有的栏目节点
   let nodes = [];
 
-  // 目标元素偏移量到node的映射
+  /**
+   * @type {{Number?:any}}
+   * @desc 目标元素偏移量到node的映射
+   */
   let offset2Node = {};
 
   let tocMain = null;
@@ -66,57 +82,73 @@
   // 真实的滚动元素
   let realScrollElement = getScrollElement(scrollElement);
 
-  // 目前元素的偏移量集合
+  /**
+   * @type {Number[]}
+   * @desc 目前元素的偏移量集合
+   */
   let offsets = [];
 
-  const resolveHeadings = function () {
-    const allHeadings = contentElement.querySelectorAll(headingSelector);
+  const parseHeadings = function () {
+    const headings = contentElement.querySelectorAll(headingSelector);
     const result = build(
-      allHeadings,
+      headings,
       idPrefix,
       levelClassPrefix,
       realScrollElement
     );
     nodes = result.nodes;
     offset2Node = result.offsets;
-    offsets = Object.keys(offset2Node);
+    offsets = Object.keys(offset2Node).map(Number);
 
     // 初始滚动的位置，计算出高亮的标题
-    const offsetY = findByScrollTop();
+    const offsetY = scrollOffsetY();
     if (offset2Node[offsetY]) {
-      $active = { node: offset2Node[offsetY], el: null, hoverd: null };
+      $active = offset2Node[offsetY];
     }
   };
 
   $: {
-    resolveHeadings();
+    // 优先于onMount
+    parseHeadings();
   }
 
-  const findByScrollTop = function () {
+  const scrollOffsetY = function () {
     // 根据滚动的距离匹配当前高亮标题
-    const top = getScrollTop(realScrollElement);
-    return offsets.find(y => y >= top);
+    const top = scrollTop(realScrollElement);
+    return offsets.find((y) => y >= top);
   };
 
-  const tocActive = function () {
+  /**
+   * 内容容器滚动，目录同步滚动到相应的位置，并激活
+   * @param {Function} [finish]
+   */
+  const scrollActive = function (finish) {
     if (isEmpty()) {
       return;
     }
-    const found = findByScrollTop();
-    const node = offset2Node[found];
+    const offsetY = scrollOffsetY();
+    const node = offset2Node[offsetY];
 
-    if (found !== undefined && node) {
+    if (offsetY !== undefined && node) {
+      $active = node;
+
       const el = node.element;
-      $active = { node, el, hoverd: null };
-
       // 先取消之前的
-      scrollNavDebounce.cancel();
-      scrollNavDebounce(el);
+      // scrollNavDebounce.cancel();
+      // scrollNavDebounce(el, finish);
+      scrollNav(el, finish);
+    } else {
+      call(finish);
     }
   };
 
-  const scrollNav = function (el) {
+  /**
+   * @param {HTMLElement|undefined} el
+   * @param {Function} [finish]
+   */
+  const scrollNav = function (el, finish) {
     if (isEmpty()) {
+      call(finish);
       return;
     }
     let tocScrollElement = tocMain;
@@ -127,7 +159,6 @@
 
       const tocOffsetHeight = tocScrollElement.offsetHeight;
       const tocScrollHeight = tocScrollElement.scrollHeight;
-
       // 最大滚动距离
       const maxScrollOffset = tocScrollHeight - tocOffsetHeight;
 
@@ -141,118 +172,111 @@
       } else {
         top = top - halfTocOffsetHeight;
       }
-      scrollTo(tocScrollElement, top, scrollDuration);
+
+      scrollTo(tocScrollElement, top, scrollDuration, () => {
+        call(finish);
+      });
+    } else {
+      call(finish);
     }
   };
 
-  const fixed = function () {
+  /**
+   * 目录停靠
+   */
+  const tocFixed = function () {
     if (isEmpty()) {
       return;
     }
     // fixedOffset = false 表示禁用
-    // @ts-ignore
-    if (fixedOffset !== false && isDoc(realScrollElement)) {
+    if (fixedOffset !== false && fixedClassName && isDoc(realScrollElement)) {
       const _fixedElement = fixedElement || tocMain;
 
       // fixed 元素滚动的距离是以document为基础
-      const scrollElementTop = getScrollTop(document.scrollingElement);
+      const scrollElementTop = scrollTop(document);
 
       let _fixedOffset = fixedOffset;
-      if (isNaN(_fixedOffset)) {
+      if (!_fixedOffset) {
         _fixedOffset = oriFixedOffset;
       }
       if (scrollElementTop >= _fixedOffset) {
         if (!_fixedElement.classList.contains(fixedClassName)) {
-          if (typeof beforeFixed == "function" && beforeFixed(true) === false) {
+          if (call(beforeFixed, undefined, true) === false) {
             return;
           }
+
           _fixedElement.classList.add(fixedClassName);
-          if (typeof afterFixed == "function" && afterFixed(true) === false) {
-            return;
-          }
+
+          call(afterFixed, undefined, true);
         }
       } else {
         if (_fixedElement.classList.contains(fixedClassName)) {
-          if (
-            typeof beforeFixed == "function" &&
-            beforeFixed(false) === false
-          ) {
+          if (call(beforeFixed, undefined, false) === false) {
             return;
           }
+
           _fixedElement.classList.remove(fixedClassName);
-          if (typeof afterFixed == "function" && afterFixed(false) === false) {
-            return;
-          }
+
+          call(afterFixed, undefined, false);
         }
       }
     }
   };
 
-  const onNav = function (el, node) {
-    fixed();
-    scrollNav(el);
-  };
+  // const onNav = function (el, node, finish) {
+  //   // fixed();
+  //   if (!$locker) {
+  //     scrollNav(el, finish);
+  //   } else {
+  //     call(finish);
+  //   }
+  // };
   const scrollHandler = function () {
-    fixed();
-    tocActive();
-  };
-
-  const onscroll = function (e) {
-    if (!$scrollLock) {
-      scrollThrottleEvent();
+    tocFixed();
+    if ($locker === 0) {
+      scrollActive();
     }
   };
 
-  const scrollNavDebounce = debounce(scrollNav);
-  const scrollThrottleEvent = throttle(scrollHandler);
+  const onscroll = function () {
+    scrollThrottleHandler();
+  };
+
+  const transitionEnd = () => {
+    scrollHandler();
+  };
+
+  // const scrollNavDebounce = debounce(scrollNav, 24);
+  const scrollThrottleHandler = throttle(scrollHandler, 16);
+  // const scrollDebounceHandler = debounce(scrollHandler, 16);
 
   onMount(() => {
-    const _fixedElement = fixedElement || tocMain;
-
     // 计算原始fixed的偏移量
+    // fixed 布局默认以document.documentElement为基础
     // 若初始隐藏且有滚动的情况下不不准确
-    oriFixedOffset = getOffset(_fixedElement, document).y;
+    oriFixedOffset = getOffset(
+      fixedElement || tocMain,
+      document.documentElement
+    ).y;
 
-    scrollHandler();
-
-    const observer = new IntersectionObserver(function (entries) {
-      const entry = entries[0];
-      // 监听toc元素是否显示
-      if (entry.intersectionRatio > 0) {
-        // 元素从隐藏到展现
-        oriFixedOffset = getOffset(_fixedElement, document).y;
-        scrollHandler();
-      }
-    });
-    observer.observe(_fixedElement);
-
-    // 大小监视
-    const resizeObserver = new ResizeObserver(function (entries) {
-      const entry = entries[0];
-      if (entry.contentRect.width > 0) {
-        active.hoverd($active.el);
-      }
-    });
-    resizeObserver.observe(_fixedElement);
+    onscroll();
 
     realScrollElement.addEventListener("scroll", onscroll);
     return () => {
-      observer.disconnect();
       realScrollElement.removeEventListener("scroll", onscroll);
     };
   });
 </script>
 
 <main class="bitoc" bind:this={tocMain}>
-  <div class="bitoc-hightlight" style={$hightlight} />
   <div class="bitoc-navs">
     <Nav
-      {onNav}
       {scrollOffset}
       {collapsedLevel}
       {scrollDuration}
       {nodes}
       scrollElement={realScrollElement}
+      {transitionEnd}
     />
   </div>
 </main>
@@ -273,22 +297,13 @@
     -ms-overflow-style: none;
     /*  Firefox */
     overflow: -moz-scrollbars-none;
+    scroll-behavior: smooth;
   }
   /* chrome 和Safari */
   .bitoc::-webkit-scrollbar {
     width: 0 !important;
   }
-  :global(.bitoc-hightlight) {
-    width: 100%;
-    background: #eee;
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 12px;
-    border-left: 3px solid #009a61;
-    transition: top 0.25s cubic-bezier(0.075, 0.82, 0.165, 1),
-      height 0.25s cubic-bezier(0.075, 0.82, 0.165, 1);
-  }
+
   :global(.bitoc-nav a) {
     display: block;
     padding: 0.2rem 1.7rem;
@@ -298,13 +313,12 @@
     position: relative;
     transition: all 0.25s;
   }
+
   :global(.bitoc-nav) {
+    overflow: hidden;
     transition: max-height 0.25s;
   }
-  :global(.bitoc-nav.is-collapsed) {
-    max-height: 0;
-    overflow: hidden;
-  }
+
   :global(.bitoc-nav a:before) {
     content: " ";
     height: 0.25rem;

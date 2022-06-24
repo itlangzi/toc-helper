@@ -32,8 +32,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
-    "svelte": "^3.44.0",
-    "vite": "^2.7.2"
+    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.49",
+    "markdown-it": "^13.0.1",
+    "prismjs": "^1.28.0",
+    "svelte": "^3.48.0",
+    "vite": "^2.9.12"
   }
 }
