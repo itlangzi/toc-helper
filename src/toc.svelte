@@ -19,7 +19,7 @@
   export let contentElement;
   export let scrollElement;
   export let fixedElement;
-  export let headingSelector = "h1, h2, h3, h4, h5, h6";
+  export let headingSelector;
   // 折叠深度
   export let collapsedLevel = 3;
   export let idPrefix = "";
@@ -89,7 +89,9 @@
   let offsets = [];
 
   const parseHeadings = function () {
-    const headings = contentElement.querySelectorAll(headingSelector);
+    const headings = contentElement.querySelectorAll(
+      headingSelector || "h1, h2, h3, h4, h5, h6"
+    );
     const result = build(
       headings,
       idPrefix,

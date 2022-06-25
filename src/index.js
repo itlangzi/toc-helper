@@ -33,7 +33,7 @@ class TocHelper {
    *  contentSelector?: undefined|String|HTMLElement, 
    *  scrollSelector?: undefined|String|HTMLElement,
    *  fixedSelector?: undefined|String|HTMLElement,
-   *  headingSelector?: undefined|String|HTMLElement,
+   *  headingSelector?: undefined|String,
    *  collapsedLevel?: Number,
    *  idPrefix?: String,
    *  levelClassPrefix?: String,
