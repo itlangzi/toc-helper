@@ -492,10 +492,8 @@ function cubicOut(t) {
  * @param {{delay?: Number, duration?: Number, easing?: Function }}  [params]
  * @returns {any}
  */
-export const slide = function (
-  node,
-  { delay = 0, duration = 150, easing = cubicOut } = {}
-) {
+// @ts-ignore
+export const slide = function (node, { delay = 0, duration = 150, easing = cubicOut } = {}) {
   const style = getComputedStyle(node);
   const opacity = +style.opacity;
   const height = parseFloat(style.height);

@@ -26,6 +26,7 @@
      * @param {TouchEvent | MouseEvent} e
      */
     const click = function (e) {
+      e.preventDefault();
       $active = _heading;
 
       // document or content container
